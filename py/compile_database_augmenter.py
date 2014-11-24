@@ -61,12 +61,12 @@ else:
 
 if os.path.isfile(copy_database_filepath):
     print "Adjusting the old database location, since a file with that name already exists."
-    print "Old filename was (%s)" % copy_database_filepath
+    print "Old copy filename was (%s)" % copy_database_filepath
     i = 0
     while os.path.isfile("%s.%i" % (copy_database_filepath, i)):
         i = i+1
     copy_database_filepath = "%s.%i" % (copy_database_filepath, i)
-    print "New filename is (%s)" % copy_database_filepath
+    print "New copy filename is (%s)" % copy_database_filepath
 
 #Check that the copy location isn't the same as the output location!
 if copy_database_filepath == output_database_filepath:
