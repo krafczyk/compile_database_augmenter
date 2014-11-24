@@ -225,3 +225,56 @@ for database_item in decoded_input_database:
     if debug > 2:
         print "List of unique included files is:"
         print include_file_list
+
+    #Create new rules for the new files
+    for new_file in include_file_list:
+        #Check that it's not already been added, unless we want dupes
+        if args.duplicates != True:
+            already_included = False
+            for item in new_file_list:
+                if new_file == item:
+                    already_included = True
+                    break
+
+            if already_included:
+                continue
+
+        new_rule = database_item
+
+        #Adjust to point to the new file
+        new_rule[u'file'] = new_file
+        #Adjust command to point to new file
+        #We start by adding a space at the end like before
+        temp_command_string = "%s " % new_rule[u'command']
+        if is_c_quoted:
+            temp_command_string = re.sub(c_quoted_match_string, r'\1 -c %s \3' % new_file, temp_command_string)
+        else:
+            temp_command_string = re.sub(c_unquoted_match_string, r'\1 -c %s \3' % new_file, temp_command_string)
+
+        #Remove explicit -o, we don't need it
+        if is_o_quoted:
+            temp_command_string = re.sub(o_quoted_match_string, r'\1 \3', temp_command_string)
+        else:
+            temp_command_string = re.sub(o_unquoted_match_string, r'\1 \3', temp_command_string)
+
+        temp_command_string = temp_command_string.strip()
+
+        new_rule[u'command'] = temp_command_string
+
+        #For the moment do nothing with directory
+        #Add the new rule to the output database
+        decoded_output_database += [ new_rule ]
+        new_file_list = [ new_file ] + new_file_list
+
+#Finished!
+if debug > 2:
+    print "Finished new output database is:"
+    print decoded_output_database
+
+output_file = open(output_database_filepath)
+if output_file == None:
+    print "There was an error opening the output database! (%s)" % output_database_filepath
+
+output_file.write(json.dumps(decoded_output_database, indent=2, separators=(',', ': ')))
+
+output_file.close()
