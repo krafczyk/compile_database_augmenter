@@ -24,6 +24,7 @@ import argparse;
 import sys;
 import os;
 import shutil;
+import re;
 
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
@@ -77,6 +78,64 @@ if input_database_file == None :
 input_database = input_database_file.read();
 input_database_file.close()
 
-if debug > 0:
-    print "Input database is:"
-    print input_database
+#Decode the input database.
+decoded_input_database = json.loads(input_database)
+
+decoded_output_database = decoded_input_database
+
+#Compile some regex commands
+c_command_match_unquoted = re.compile('.* -c [^" ]+ .*')
+c_command_match_quoted = re.compile('.* -c "[^"]+" .*')
+output_match_unquoted = re.compile('.* -o [^" ]+ .*')
+output_match_quoted = re.compile('.* -o "[^"]+" .*')
+
+for item in decoded_input_database:
+    #We show some debugging info about the database entry
+    if debug > 0:
+        print "Database Item is:"
+        print "Directory is:"
+        print item[u'directory']
+        print "Command is:"
+        print item[u'command']
+        print "File is:"
+        print item[u'file']
+
+    #In case -c or -o appears at the end of the command line, we make sure there is a space there
+    command = "%s " % item[u'command']
+
+    #We must test whether the filepath has spaces and hence is contained in a quoted string
+    is_c_quoted = None
+    if c_command_match_unquoted.match(command):
+        is_c_quoted = False
+    elif c_command_match_quoted.match(command):
+        is_c_quoted = True
+
+    if is_c_quoted == None:
+        if debug > 0:
+            print "Command for file (%s) is not compatible skipping.. (can't match -c option)" % item[u'file']
+            continue
+
+    is_o_quoted = None
+    if c_command_match_unquoted.match(command):
+        is_o_quoted = False
+    elif c_command_match_quoted.match(command):
+        is_o_quoted = True
+
+    if is_o_quoted == None:
+        if debug > 0:
+            print "Command for file (%s) is not compatible skipping.. (can't match -o option)" % item[u'file']
+            continue
+
+    if debug > 2:
+        if is_c_quoted:
+            print "-c option is quoted"
+        else:
+            print "-c option is not quoted";
+
+        if is_o_quoted:
+            print "-o option is quoted"
+        else:
+            print "-o option is not quoted";
+
+    #Now we replace -c filepath with -E filepath
+    #And -o filepath with -o /dev/stdout
