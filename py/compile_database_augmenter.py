@@ -75,6 +75,7 @@ if input_database_file == None :
     sys.exit(-1)
 
 input_database = input_database_file.read();
+input_database_file.close()
 
 if debug > 0:
     print "Input database is:"
