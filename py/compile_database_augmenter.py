@@ -84,13 +84,13 @@ decoded_input_database = json.loads(input_database)
 decoded_output_database = decoded_input_database
 
 #Compile some regex commands
-c_unquoted_match_string = '(.*) -c ([^" ]+) (.*)'
+c_unquoted_match_string = r'(.*) -c ([^" ]+) (.*)'
 c_command_match_unquoted = re.compile(c_unquoted_match_string)
-c_quoted_match_string = '(.*) -c ("[^"]+") (.*)'
+c_quoted_match_string = r'(.*) -c ("[^"]+") (.*)'
 c_command_match_quoted = re.compile(c_quoted_match_string)
-o_unquoted_match_string = '(.*) -o ([^" ]+) (.*)'
+o_unquoted_match_string = r'(.*) -o ([^" ]+) (.*)'
 output_match_unquoted = re.compile(o_unquoted_match_string)
-o_quoted_match_string = '(.*) -o ("[^"]+") (.*)'
+o_quoted_match_string = r'(.*) -o ("[^"]+") (.*)'
 output_match_quoted = re.compile(o_quoted_match_string)
 
 for item in decoded_input_database:
@@ -143,3 +143,17 @@ for item in decoded_input_database:
 
     #Now we replace -c filepath with -E filepath
     #And -o filepath with -o /dev/stdout
+
+    if is_c_quoted:
+        new_command = re.sub(c_quoted_match_string, r"\1 -E \2 \3", command)
+    else:
+        new_command = re.sub(c_unquoted_match_string, r"\1 -E \2 \3", command)
+
+    if is_o_quoted:
+        new_command = re.sub(o_quoted_match_string, r"\1 -o /dev/stdout \3", new_command)
+    else:
+        new_command = re.sub(o_unquoted_match_string, r"\1 -o /dev/stdout \3", new_command)
+
+    if debug > 1:
+        print "New Command:"
+        print new_command
