@@ -1,0 +1,2 @@
+#!/bin/bash
+@PYTHON@ @CMAKE_INSTALL_PREFIX@/bin/compile_database_augmenter.py "$@"
