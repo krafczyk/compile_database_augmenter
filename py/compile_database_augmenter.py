@@ -26,6 +26,7 @@ import os;
 import shutil;
 import re;
 import subprocess;
+import copy;
 
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
@@ -92,7 +93,8 @@ input_database_file.close()
 #Decode the input database.
 decoded_input_database = json.loads(input_database)
 
-decoded_output_database = decoded_input_database
+#We need to make a deep copy here
+decoded_output_database = copy.deepcopy(decoded_input_database)
 
 #Compile some regex commands
 c_unquoted_match_string = r'(.*) -c ([^" ]+) (.*)'
@@ -108,12 +110,18 @@ include_sync_line = re.compile(include_sync_line_match)
 
 file_list = []
 #Fill a list with files which already have a good rule.
-for item in decoded_input_database:
-    file_list += [ item[u'file'] ]
+for database_item in decoded_input_database:
+    file_list += [ database_item[u'file'] ]
 
 new_file_list = file_list
 
+num_items = len(decoded_input_database)
+item_number = 0
+
 for database_item in decoded_input_database:
+    item_number += 1
+    sys.stdout.write("Handling item %i out of %i %0.2f%%\r" % (item_number, num_items, (float(item_number)/float(num_items))*100.))
+    sys.stdout.flush()
     #We show some debugging info about the database entry
     if debug > 0:
         print "Database Item is:"
@@ -271,10 +279,15 @@ if debug > 2:
     print "Finished new output database is:"
     print decoded_output_database
 
-output_file = open(output_database_filepath)
+output_file = open(output_database_filepath, "w")
 if output_file == None:
     print "There was an error opening the output database! (%s)" % output_database_filepath
 
 output_file.write(json.dumps(decoded_output_database, indent=2, separators=(',', ': ')))
 
 output_file.close()
+
+print ""
+print "There were %i rules originally." % len(decoded_input_database)
+print "Now there are %i rules." % len(decoded_output_database)
+print "We've added %i rules." % (len(decoded_output_database)-len(decoded_input_database))
