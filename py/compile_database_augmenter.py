@@ -84,13 +84,13 @@ decoded_input_database = json.loads(input_database)
 decoded_output_database = decoded_input_database
 
 #Compile some regex commands
-c_unquoted_match_string = '.* -c ([^" ]+) .*'
+c_unquoted_match_string = '(.*) -c ([^" ]+) (.*)'
 c_command_match_unquoted = re.compile(c_unquoted_match_string)
-c_quoted_match_string = '.* -c ("[^"]+") .*'
+c_quoted_match_string = '(.*) -c ("[^"]+") (.*)'
 c_command_match_quoted = re.compile(c_quoted_match_string)
-o_unquoted_match_string = '.* -o ([^" ]+) .*'
+o_unquoted_match_string = '(.*) -o ([^" ]+) (.*)'
 output_match_unquoted = re.compile(o_unquoted_match_string)
-o_quoted_match_string = '.* -o ("[^"]+") .*'
+o_quoted_match_string = '(.*) -o ("[^"]+") (.*)'
 output_match_quoted = re.compile(o_quoted_match_string)
 
 for item in decoded_input_database:
