@@ -111,9 +111,9 @@ include_sync_line = re.compile(include_sync_line_match)
 file_list = []
 #Fill a list with files which already have a good rule.
 for database_item in decoded_input_database:
-    file_list += [ database_item[u'file'] ]
+    file_list += [ database_item[u'file'].strip() ]
 
-new_file_list = file_list
+new_file_list = copy.deepcopy(file_list)
 
 num_items = len(decoded_input_database)
 item_number = 0
@@ -207,7 +207,7 @@ for database_item in decoded_input_database:
     for line in output:
         sync_line_match = include_sync_line.match(line)
         if(sync_line_match != None):
-            new_file = sync_line_match.group(1)
+            new_file = sync_line_match.group(1).strip()
             if os.path.isfile(new_file):
                 already_include = False
                 #Don't add again a header file you already added!
@@ -247,10 +247,10 @@ for database_item in decoded_input_database:
             if already_included:
                 continue
 
-        new_rule = database_item
+        new_rule = copy.deepcopy(database_item)
 
         #Adjust to point to the new file
-        new_rule[u'file'] = new_file
+        new_rule[u'file'] = copy.deepcopy(new_file)
         #Adjust command to point to new file
         #We start by adding a space at the end like before
         temp_command_string = "%s " % new_rule[u'command']
@@ -272,7 +272,7 @@ for database_item in decoded_input_database:
         #For the moment do nothing with directory
         #Add the new rule to the output database
         decoded_output_database += [ new_rule ]
-        new_file_list = [ new_file ] + new_file_list
+        new_file_list = [ copy.deepcopy(new_file) ] + new_file_list
 
 #Finished!
 if debug > 2:
