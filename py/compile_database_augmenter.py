@@ -23,17 +23,22 @@ import argparse;
 
 import sys;
 import os;
+import shutil;
 
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
 parser.add_argument("-o", "--output-database", type=str, help="The filename of the output database. Default is the same as the input database file.")
 parser.add_argument("-c", "--copy-database", type=str, help="The file name to copy the input database to. Default is the same as input-database but with .old on the end.")
+parser.add_argument("-d", "--debug", type=int, help="Set the debug level. Default is 0.")
 
 args = parser.parse_args()
 
 input_database_filepath = ""
 output_database_filepath = ""
 copy_database_filepath = ""
+debug = 0
+if args.debug != None:
+    debug = args.debug
 
 if args.input_database != None:
     input_database_filepath = args.input_database
@@ -61,4 +66,16 @@ if not os.path.isfile(input_database_filepath):
     sys.exit(-1)
 
 #First, copy the input database to the copy database location
+shutil.copyfile(input_database_filepath, copy_database_filepath)
 
+#Read in input database.
+input_database_file = open(input_database_filepath, "r")
+if input_database_file == None :
+    print "There was a problem opening the input database file! (%s)" % input_database_filepath
+    sys.exit(-1)
+
+input_database = input_database_file.read();
+
+if debug > 0:
+    print "Input database is:"
+    print input_database
