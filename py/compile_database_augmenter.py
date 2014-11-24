@@ -21,9 +21,37 @@ import json;
 
 import argparse;
 
+import sys;
+
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
 parser.add_argument("-o", "--output-database", type=str, help="The filename of the output database. Default is the same as the input database file.")
 parser.add_argument("-c", "--copy-database", type=str, help="The file name to copy the input database to. Default is the same as input-database but with .old on the end.")
 
 args = parser.parse_args()
+
+input_database_filepath = ""
+output_database_filepath = ""
+copy_database_filepath = ""
+
+if args.input_database != None:
+    input_database_filepath = args.input_database
+else:
+    input_database_filepath = "compile_commands.json"
+
+if args.output_database != None:
+    output_database_filepath = args.output_database
+else:
+    output_database_filepath = input_database_filepath
+
+if args.copy_database != None:
+    copy_database_filepath = args.copy_database
+else:
+    copy_database_filepath = "%s.old" % input_database_filepath;
+
+#Check that the copy location isn't the same as the output location!
+if copy_database_filepath == output_database_filepath:
+    print "Cannot have the copy database file path the same as the output database filepath"
+    sys.exit(-1)
+
+#First, copy the input database to the copy database location
