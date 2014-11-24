@@ -22,6 +22,7 @@ import json;
 import argparse;
 
 import sys;
+import os;
 
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
@@ -54,4 +55,10 @@ if copy_database_filepath == output_database_filepath:
     print "Cannot have the copy database file path the same as the output database filepath"
     sys.exit(-1)
 
+#Check for the existence of the input database.
+if not os.path.isfile(input_database_filepath):
+    print "input database (%s) doesn't exist!" % input_database_filepath
+    sys.exit(-1)
+
 #First, copy the input database to the copy database location
+
