@@ -93,6 +93,8 @@ o_unquoted_match_string = r'(.*) -o ([^" ]+) (.*)'
 output_match_unquoted = re.compile(o_unquoted_match_string)
 o_quoted_match_string = r'(.*) -o ("[^"]+") (.*)'
 output_match_quoted = re.compile(o_quoted_match_string)
+include_sync_line_match = r'# [0-9]* "(.*)"(?: [0-4])*.*'
+include_sync_line = re.compile(include_sync_line_match)
 
 for item in decoded_input_database:
     #We show some debugging info about the database entry
@@ -160,15 +162,40 @@ for item in decoded_input_database:
         print new_command
 
     #Attempt to run new command
-    full_command = "cd %s; %s | grep '# '" % (item[u'directory'], new_command)
+    full_command = "cd %s; %s" % (item[u'directory'], new_command)
     output = ""
     status = None
     try:
-        output = subprocess.check_output([full_command], shell=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError:
+        output = subprocess.check_output([full_command], stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError, e:
         status = False
+        output = e.output
 
     if status == False:
         if debug > 0:
             print "There was a problem running the command (%s)" % full_command
             print output
+        continue
+
+    if debug > 2:
+        print "New command result"
+        print output
+
+    output = output.split('\n')
+    include_file_list = []
+    for line in output:
+        sync_line_match = include_sync_line.match(line)
+        if(sync_line_match != None):
+            new_file = sync_line_match.group(1)
+            if os.path.isfile(new_file):
+                already_include = False
+                for item in include_file_list:
+                    if item == new_file:
+                        already_include = True
+                        break
+                if not already_include:
+                    include_file_list += [ new_file ]
+
+    if debug > 2:
+        print "List of unique included files is:"
+        print include_file_list
