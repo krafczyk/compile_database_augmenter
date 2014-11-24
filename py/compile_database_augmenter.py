@@ -25,6 +25,7 @@ import sys;
 import os;
 import shutil;
 import re;
+import subprocess;
 
 parser = argparse.ArgumentParser(description="Command to augment compilation database with header file compilation flags");
 parser.add_argument("-i", "--input-database", type=str, help="The filename of the input database. Default is 'compile_commands.json'")
@@ -157,3 +158,17 @@ for item in decoded_input_database:
     if debug > 1:
         print "New Command:"
         print new_command
+
+    #Attempt to run new command
+    full_command = "cd %s; %s | grep '# '" % (item[u'directory'], new_command)
+    output = ""
+    status = None
+    try:
+        output = subprocess.check_output([full_command], shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        status = False
+
+    if status == False:
+        if debug > 0:
+            print "There was a problem running the command (%s)" % full_command
+            print output
