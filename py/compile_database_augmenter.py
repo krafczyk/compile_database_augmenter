@@ -32,6 +32,7 @@ parser.add_argument("-i", "--input-database", type=str, help="The filename of th
 parser.add_argument("-o", "--output-database", type=str, help="The filename of the output database. Default is the same as the input database file.")
 parser.add_argument("-c", "--copy-database", type=str, help="The file name to copy the input database to. Default is the same as input-database but with .old on the end.")
 parser.add_argument("-d", "--debug", type=int, help="Set the debug level. Default is 0.")
+parser.add_argument("--duplicates", action='store_true', help="Store all duplicates of new header files, otherwise store rule only for the first occurance of each header file")
 
 args = parser.parse_args()
 
@@ -95,6 +96,13 @@ o_quoted_match_string = r'(.*) -o ("[^"]+") (.*)'
 output_match_quoted = re.compile(o_quoted_match_string)
 include_sync_line_match = r'# [0-9]* "(.*)"(?: [0-4])*.*'
 include_sync_line = re.compile(include_sync_line_match)
+
+file_list = []
+#Fill a list with files which already have a good rule.
+for item in decoded_input_database:
+    file_list += [ item[u'file'] ]
+
+new_file_list = file_list
 
 for item in decoded_input_database:
     #We show some debugging info about the database entry
@@ -177,10 +185,6 @@ for item in decoded_input_database:
             print output
         continue
 
-    if debug > 2:
-        print "New command result"
-        print output
-
     output = output.split('\n')
     include_file_list = []
     for line in output:
@@ -189,12 +193,25 @@ for item in decoded_input_database:
             new_file = sync_line_match.group(1)
             if os.path.isfile(new_file):
                 already_include = False
+                #Don't add again a header file you already added!
                 for item in include_file_list:
                     if item == new_file:
                         already_include = True
                         break
+
+                #Check against the files we already have rules for, if the rule is there,
+                #It's already exact, no need to replace it or add another
+                for item in file_list:
+                    if item == new_file:
+                        already_include = True
+                        break
+
+                #Include the new file
                 if not already_include:
-                    include_file_list += [ new_file ]
+                    #Put the new file at the beginning of the list,
+                    #There are often many copies of the same entry near eachother, we want
+                    #to reduce how far into the list we have to go to find it's copy.
+                    include_file_list = [ new_file ] + include_file_list
 
     if debug > 2:
         print "List of unique included files is:"
