@@ -113,19 +113,19 @@ for item in decoded_input_database:
 
 new_file_list = file_list
 
-for item in decoded_input_database:
+for database_item in decoded_input_database:
     #We show some debugging info about the database entry
     if debug > 0:
         print "Database Item is:"
         print "Directory is:"
-        print item[u'directory']
+        print database_item[u'directory']
         print "Command is:"
-        print item[u'command']
+        print database_item[u'command']
         print "File is:"
-        print item[u'file']
+        print database_item[u'file']
 
     #In case -c or -o appears at the end of the command line, we make sure there is a space there
-    command = "%s " % item[u'command']
+    command = "%s " % database_item[u'command']
 
     #We must test whether the filepath has spaces and hence is contained in a quoted string
     is_c_quoted = None
@@ -136,7 +136,7 @@ for item in decoded_input_database:
 
     if is_c_quoted == None:
         if debug > 0:
-            print "Command for file (%s) is not compatible skipping.. (can't match -c option)" % item[u'file']
+            print "Command for file (%s) is not compatible skipping.. (can't match -c option)" % database_item[u'file']
             continue
 
     is_o_quoted = None
@@ -147,7 +147,7 @@ for item in decoded_input_database:
 
     if is_o_quoted == None:
         if debug > 0:
-            print "Command for file (%s) is not compatible skipping.. (can't match -o option)" % item[u'file']
+            print "Command for file (%s) is not compatible skipping.. (can't match -o option)" % database_item[u'file']
             continue
 
     if debug > 2:
@@ -179,7 +179,7 @@ for item in decoded_input_database:
         print new_command
 
     #Attempt to run new command
-    full_command = "cd %s; %s" % (item[u'directory'], new_command)
+    full_command = "cd %s; %s" % (database_item[u'directory'], new_command)
     output = ""
     status = None
     try:
